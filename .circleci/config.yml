@@ -53,7 +53,7 @@ jobs:
             mkdir -pv test-reports
             pytest --doctest-modules --junitxml=test-reports/junit.xml --cov=kashgari --cov-report=xml --cov-report=html $TESTFILES
       - store_test_results:
-          path: test-results
+          path: test-reports
 
 workflows:
   version: 2
