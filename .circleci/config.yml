@@ -17,10 +17,10 @@ jobs:
           key: deps-{{ .Branch }}-{{ checksum "requirements.txt" }}
           paths:
             - "./venv"
-      - flake8 kashgari
+      - run: flake8 kashgari
 
 workflows:
   version: 2
-  lint:
+  lint-workflow:
     jobs:
       - lint
