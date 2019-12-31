@@ -1,21 +1,24 @@
 version: 2.1
 
+default_steps:
+  - install_dependencies: &install_dependencies
+      run:
+        name: "Install dependencies"
+        command: |
+          pip3 install virtualenv
+          virtualenv -p python3 venv
+          source venv/bin/activate
+          pip3 install -r requirements.txt && pip3 install flake8
+
 jobs:
   lint:
     docker:
       - image: circleci/python:3.7.5
     steps:
       - checkout
-      - run:
-          command: |
-            pip3 install virtualenv
-            virtualenv -p python3 venv
       - restore_cache:
           key: deps-{{ .Branch }}-{{ checksum "requirements.txt" }}
-      - run:
-          command: |
-            source venv/bin/activate
-            pip3 install -r requirements.txt
+      - *install_dependencies
       - save_cache:
           key: deps-{{ .Branch }}-{{ checksum "requirements.txt" }}
           paths:
@@ -28,16 +31,9 @@ jobs:
     parallelism: 4
     steps:
       - checkout
-      - run:
-          command: |
-            pip3 install virtualenv
-            virtualenv -p python3 venv
       - restore_cache:
           key: deps-{{ .Branch }}-{{ checksum "requirements.txt" }}
-      - run:
-          command: |
-            source venv/bin/activate
-            pip3 install -r requirements.txt
+      - *install_dependencies
       - save_cache:
           key: deps-{{ .Branch }}-{{ checksum "requirements.txt" }}
           paths:
