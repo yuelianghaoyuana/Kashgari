@@ -1,13 +1,16 @@
 version: 2.1
+
 jobs:
   lint:
     docker:
       - image: circleci/python:3.7.5
     steps:
       - checkout
-      - run: pip3 install virtualenv
-      - run: virtualenv -p python3 venv
-      - restore_cache: # ensure this step occurs *before* installing dependencies
+      - run:
+          command: |
+            pip3 install virtualenv
+            virtualenv -p python3 venv
+      - restore_cache:
           key: deps-{{ .Branch }}-{{ checksum "requirements.txt" }}
       - run:
           command: |
@@ -19,8 +22,38 @@ jobs:
             - "./venv"
       - run: flake8 kashgari
 
+  test:
+    docker:
+      - image: circleci/python:3.7.5
+    parallelism: 4
+    steps:
+      - checkout
+      - run:
+          command: |
+            pip3 install virtualenv
+            virtualenv -p python3 venv
+      - restore_cache:
+          key: deps-{{ .Branch }}-{{ checksum "requirements.txt" }}
+      - run:
+          command: |
+            source venv/bin/activate
+            pip3 install -r requirements.txt
+      - save_cache:
+          key: deps-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          paths:
+            - "./venv"
+      - run:
+          name: run tests
+          no_output_timeout: 1800
+          command: |
+            TESTFILES=$(circleci tests glob "tests/**/*.py" | circleci tests split)
+            echo $TESTFILES
+            mkdir -pv test-reports
+            pytest --doctest-modules --junitxml=test-reports/junit.xml --cov=kashgari --cov-report=xml --cov-report=html $TESTFILES
+
 workflows:
   version: 2
   lint-workflow:
     jobs:
       - lint
+      - test
