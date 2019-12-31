@@ -18,3 +18,9 @@ jobs:
           paths:
             - "./venv"
       - flake8 kashgari
+
+workflows:
+  version: 2
+  lint:
+    jobs:
+      - lint
