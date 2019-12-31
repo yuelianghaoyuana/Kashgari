@@ -23,7 +23,10 @@ jobs:
           key: deps-{{ .Branch }}-{{ checksum "requirements.txt" }}
           paths:
             - "./venv"
-      - run: flake8 kashgari
+      - run:
+        command: |
+          source venv/bin/activate
+          flake8 kashgari
 
   test:
     docker:
@@ -42,6 +45,7 @@ jobs:
           name: run tests
           no_output_timeout: 1800
           command: |
+            source venv/bin/activate
             TESTFILES=$(circleci tests glob "tests/**/*.py" | circleci tests split)
             echo $TESTFILES
             mkdir -pv test-reports
