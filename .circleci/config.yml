@@ -38,7 +38,7 @@ jobs:
   test:
     docker:
       - image: circleci/python:3.7.5
-    resource_class: medium+
+    resource_class: medium
     parallelism: 4
     steps:
       - checkout
