@@ -1,4 +1,3 @@
-# encoding: utf-8
 
 # author: BrikerMan
 # contact: eliyar917@gmail.com

@@ -34,8 +34,6 @@ sample_w2v_path = get_file('sample_w2v.txt',
                            "http://s3.bmio.net/kashgari/sample_w2v.txt",
                            cache_dir=DATA_PATH)
 
-w2v_embedding = WordEmbedding(sample_w2v_path, task=kashgari.CLASSIFICATION)
-w2v_embedding_variable_len = WordEmbedding(sample_w2v_path, task=kashgari.CLASSIFICATION, sequence_length='variable')
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -104,7 +102,8 @@ class TestBi_LSTM_Model(unittest.TestCase):
         model.fit_without_generator(valid_x, valid_y, valid_x, valid_y, epochs=2)
 
     def test_w2v_model(self):
-        model = self.model_class(embedding=w2v_embedding)
+        embed = WordEmbedding(sample_w2v_path, task=kashgari.CLASSIFICATION)
+        model = self.model_class(embedding=embed)
         model.fit(valid_x, valid_y, epochs=1)
         assert True
 
@@ -117,7 +116,8 @@ class TestBi_LSTM_Model(unittest.TestCase):
                     pass
                 elif isinstance(value, int):
                     hyper_params[layer][key] = value + 15 if value >= 64 else value
-        model = self.model_class(embedding=w2v_embedding_variable_len,
+        embed = WordEmbedding(sample_w2v_path, task=kashgari.CLASSIFICATION, sequence_length='variable')
+        model = self.model_class(embedding=embed,
                                  hyper_parameters=hyper_params)
         model.fit(valid_x, valid_y, epochs=1)
         assert True
