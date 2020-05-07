@@ -48,14 +48,21 @@ class BiGRU_Model(ABCClassificationModel):
 if __name__ == "__main__":
     from kashgari.corpus import JigsawToxicCommentCorpus
     corpus = JigsawToxicCommentCorpus('/Users/brikerman/Downloads/'
-                                      'jigsaw-toxic-comment-classification-challenge/train.csv')
-    x, y = corpus.load_data()
+                                      'jigsaw-toxic-comment-classification-challenge/train.csv',
+                                      sample_count=20000)
+    train_x, train_y = corpus.load_data()
+    valid_x, valid_y = corpus.load_data('valid')
+
     model = BiGRU_Model(multi_label=True)
     from kashgari.generators import CorpusGenerator
-    train_gen = CorpusGenerator(x, y)
-    model.build_model(train_gen)
-    model.tf_model.summary()
-    model.fit(x, y, epochs=1)
+    train_gen = CorpusGenerator(train_x, train_y)
+    model.fit(train_x, train_y, valid_x, valid_y, epochs=20)
 
-    y = model.predict(x[:5], debug_info=True)
+    y = model.predict(train_x[:20], debug_info=True)
     print(y)
+    print(train_y[:20])
+
+    test_x, test_y = corpus.load_data('test')
+    model.evaluate(test_x, test_y)
+
+    model.evaluate(valid_x, valid_y)

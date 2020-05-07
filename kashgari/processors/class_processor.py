@@ -16,8 +16,6 @@ from typing import Dict
 from tensorflow.keras.utils import to_categorical
 from typing import List
 
-from sklearn.preprocessing import MultiLabelBinarizer
-
 from kashgari.generators import CorpusGenerator
 from kashgari.processors.abc_processor import ABCProcessor
 
@@ -32,11 +30,13 @@ class ClassificationProcessor(ABCProcessor):
     def __init__(self,
                  multi_label: bool = False,
                  **kwargs):
+        from kashgari.utils import MultiLabelBinarizer
         super(ClassificationProcessor, self).__init__(**kwargs)
         self.multi_label = multi_label
-        self.multi_label_binarizer = MultiLabelBinarizer()
+        self.multi_label_binarizer = MultiLabelBinarizer(self.vocab2idx)
 
     def build_vocab_dict_if_needs(self, generator: CorpusGenerator):
+        from kashgari.utils import MultiLabelBinarizer
         if self.vocab2idx:
             return
         vocab2idx = {}
@@ -63,8 +63,7 @@ class ClassificationProcessor(ABCProcessor):
                 vocab2idx[token] = len(vocab2idx)
         self.vocab2idx = vocab2idx
         self.idx2vocab = dict([(v, k) for k, v in self.vocab2idx.items()])
-        if self.multi_label:
-            self.multi_label_binarizer.fit([list(self.vocab2idx.keys())])
+        self.multi_label_binarizer = MultiLabelBinarizer(self.vocab2idx)
 
     def numerize_samples(self,
                          samples: List[str],

@@ -148,13 +148,12 @@ class ABCLabelingModel(ABCTaskModel, ABC):
                                            batch_size=batch_size)
             fit_kwargs['validation_data'] = valid_gen.generator()
             fit_kwargs['validation_steps'] = len(valid_gen)
-        if callbacks:
-            fit_kwargs['callbacks'] = callbacks
 
         return self.tf_model.fit(train_gen.generator(),
                                  steps_per_epoch=len(train_gen),
                                  epochs=epochs,
-                                 callbacks=callbacks)
+                                 callbacks=callbacks,
+                                 **fit_kwargs)
 
     def predict_entities(self,
                          x_data,

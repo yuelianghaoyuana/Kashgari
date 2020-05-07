@@ -12,7 +12,7 @@ import json
 import pydoc
 import random
 import numpy as np
-from typing import List, Union, TypeVar, Tuple, Type
+from typing import List, Union, TypeVar, Tuple, Type, Dict
 
 from tensorflow import keras
 
@@ -99,7 +99,41 @@ def load_model(model_path: str, load_weights: bool = True) -> Union[ABCClassific
     return model
 
 
+class MultiLabelBinarizer:
+    def __init__(self, vocab2idx: Dict[str, int]):
+        self.vocab2idx = vocab2idx
+        self.idx2vocab = dict([(v, k) for k, v in vocab2idx.items()])
+
+    @property
+    def classes(self) -> List[str]:
+        return list(self.idx2vocab.values())
+
+    def transform(self, samples: List[Union[List[str], Tuple[str]]]) -> np.ndarray:
+        data = np.zeros((len(samples), len(self.vocab2idx)))
+        for sample_index, sample in enumerate(samples):
+            for label in sample:
+                data[sample_index][self.vocab2idx[label]] = 1
+        return data
+
+    def inverse_transform(self, preds: np.ndarray, threshold: float = 0.5) -> List[List[str]]:
+        data = []
+        for sample in preds:
+            x = []
+            for label_x in np.where(sample >= threshold)[0]:
+                x.append(self.idx2vocab[label_x])
+            data.append(x)
+        return data
+
+
 if __name__ == "__main__":
-    p = '/Users/brikerman/Desktop/python/Kashgari2/tests/test_classification/model'
-    model = load_model(p)
-    model.tf_model.summary()
+    a = MultiLabelBinarizer(vocab2idx={'identity_hate': 0,
+                                       'insult': 1,
+                                       'obscene': 2,
+                                       'severe_toxic': 3,
+                                       'threat': 4,
+                                       'toxic': 5}
+                            )
+    r = a.transform([[], ['identity_hate'], ['obscene', 'threat']])
+    print(r)
+    x = np.random.random((10, 6))
+    print(a.inverse_transform(x, threshold=0.9))

@@ -12,6 +12,7 @@ from abc import ABC
 from typing import List, Dict, Any, Tuple
 
 import random
+import numpy as np
 from sklearn import metrics
 
 import kashgari
@@ -170,13 +171,11 @@ class ABCClassificationModel(ABCTaskModel, ABC):
             fit_kwargs['validation_data'] = valid_gen.generator()
             fit_kwargs['validation_steps'] = len(valid_gen)
 
-        if callbacks:
-            fit_kwargs['callbacks'] = callbacks
-
         return self.tf_model.fit(train_gen.generator(),
                                  steps_per_epoch=len(train_gen),
                                  epochs=epochs,
-                                 callbacks=callbacks)
+                                 callbacks=callbacks,
+                                 **fit_kwargs)
 
     def predict(self,
                 x_data,
@@ -239,11 +238,13 @@ class ABCClassificationModel(ABCTaskModel, ABC):
                  *,
                  batch_size=None,
                  digits=4,
+                 multi_label_threshold=0.5,
                  truncating=False,
                  debug_info=False) -> Tuple[float, float, Dict]:
         y_pred = self.predict(x_data,
                               batch_size=batch_size,
                               truncating=truncating,
+                              multi_label_threshold=multi_label_threshold,
                               debug_info=debug_info)
 
         if debug_info:
@@ -253,14 +254,47 @@ class ABCClassificationModel(ABCTaskModel, ABC):
                 logging.debug('y      : {}'.format(y_data[index]))
                 logging.debug('y_pred : {}'.format(y_pred[index]))
 
-        report = metrics.classification_report(y_data,
-                                               y_pred,
-                                               output_dict=True,
-                                               digits=digits)
-        print(metrics.classification_report(y_data,
-                                            y_pred,
-                                            output_dict=False,
-                                            digits=digits))
+        if self.multi_label:
+            multi_label_binarizer = self.label_processor.multi_label_binarizer
+            y_pred_b = multi_label_binarizer.transform(y_pred)
+            y_true_b = multi_label_binarizer.transform(y_data)
+
+            hamming_loss = metrics.hamming_loss(y_pred_b, y_true_b)
+            report = {}
+            for c_index, c in enumerate(multi_label_binarizer.classes):
+                precision = metrics.precision_score(y_true_b[:, c_index], y_pred_b[:, c_index])
+                recall = metrics.recall_score(y_true_b[:, c_index], y_pred_b[:, c_index])
+                f1 = metrics.f1_score(y_true_b[:, c_index], y_pred_b[:, c_index])
+                support = len(np.where(y_true_b[:, c_index] == 1)[0])
+                report[c] = {
+                    'precision': precision,
+                    'recall': recall,
+                    'f1': f1,
+                    'support': support
+                }
+
+            headers = ["precision", "recall", "f1-score", "support"]
+            head_fmt = '{:>{width}s} ' + ' {:>9}' * len(headers)
+            print(head_fmt.format('', *headers, width=20))
+
+            rows = []
+            row_fmt = '{:>{width}s}  {:>9.{digits}f} {:>9.{digits}f} {:>9.{digits}f} {:>9}\n'
+
+            for k, v in report.items():
+                rows.append((k, v['precision'], v['recall'], v['f1'], v['support']))
+
+            for row in rows:
+                print(row_fmt.format(*row, width=20, digits=4))
+
+        else:
+            report = metrics.classification_report(y_data,
+                                                   y_pred,
+                                                   output_dict=True,
+                                                   digits=digits)
+            print(metrics.classification_report(y_data,
+                                                y_pred,
+                                                output_dict=False,
+                                                digits=digits))
         return report
 
 

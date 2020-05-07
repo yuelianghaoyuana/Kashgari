@@ -185,15 +185,18 @@ class JigsawToxicCommentCorpus:
     to a folder. Then init a JigsawToxicCommentCorpus object with `train.csv` path.
     """
 
-    def __init__(self, corpus_train_csv_path: str):
+    def __init__(self, corpus_train_csv_path: str, sample_count: int=None):
         self.file_path = corpus_train_csv_path
         self.train_ids = []
         self.test_ids = []
         self.valid_ids = []
 
         self._tokenizer = None
+        if sample_count is None:
+            sample_count = 159571
+        self.sample_count = sample_count
 
-        for i in range(159571):
+        for i in range(self.sample_count):
             prob = np.random.random()
             if prob <= 0.7:
                 self.train_ids.append(i)
@@ -241,6 +244,7 @@ class JigsawToxicCommentCorpus:
         """
 
         df = pd.read_csv(self.file_path)
+        df = df[:self.sample_count]
         df['y'] = df.apply(self._extract_label, axis=1)
         if text_process_func is None:
             text_process_func = self._text_process
