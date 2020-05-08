@@ -19,8 +19,8 @@ from kashgari.generators import BatchDataGenerator
 from kashgari.generators import CorpusGenerator
 from kashgari.processors import SequenceProcessor
 from kashgari.tasks.abs_task_model import ABCTaskModel
-from kashgari.toolkits.metrics.sequence_labeling import get_entities
-from kashgari.toolkits.metrics.sequence_labeling import sequence_labeling_report
+from kashgari.metrics.sequence_labeling import get_entities
+from kashgari.metrics.sequence_labeling import sequence_labeling_report
 from kashgari.types import TextSamplesVar
 
 if TYPE_CHECKING:

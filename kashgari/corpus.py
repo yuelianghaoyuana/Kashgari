@@ -283,6 +283,3 @@ if __name__ == "__main__":
 
     for i in y[:20]:
         print(i)
-
-    import numpy as np
-    np.sum()

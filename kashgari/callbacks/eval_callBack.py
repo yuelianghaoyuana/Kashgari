@@ -10,6 +10,7 @@
 from tensorflow import keras
 
 from kashgari.tasks.abs_task_model import ABCTaskModel
+from typing import List, Any, Dict
 
 
 class EvalCallBack(keras.callbacks.Callback):
@@ -17,10 +18,10 @@ class EvalCallBack(keras.callbacks.Callback):
     def __init__(self,
                  *,
                  task_model: ABCTaskModel,
-                 valid_x,
-                 valid_y,
-                 step=5,
-                 batch_size=256):
+                 valid_x: List[Any],
+                 valid_y: List[Any],
+                 step: int = 5,
+                 batch_size: int = 256) -> None:
         """
         Evaluate callback, calculate precision, recall and f1
         Args:
@@ -36,9 +37,9 @@ class EvalCallBack(keras.callbacks.Callback):
         self.valid_y = valid_y
         self.step = step
         self.batch_size = batch_size
-        self.logs = []
+        self.logs: List[Dict] = []
 
-    def on_epoch_end(self, epoch, logs=None):
+    def on_epoch_end(self, epoch: int, logs: Any = None) -> None:
         if (epoch + 1) % self.step == 0:
             report = self.task_model.evaluate(self.valid_x,
                                               self.valid_y,
