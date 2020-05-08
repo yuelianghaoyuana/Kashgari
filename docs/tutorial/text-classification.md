@@ -263,6 +263,9 @@ class DoubleBLSTMModel(ABCClassificationModel):
                                   name='layer_dropout')
 
         layer_time_distributed = L.Dense(output_dim, **config['layer_output'])
+
+        # You need to use this actiovation layer as final activation
+        # to suppor multi-label classification
         layer_activation = self._activation_layer()
 
         # Define tensor flow

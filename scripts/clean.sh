@@ -2,6 +2,8 @@
 
 set -e
 
+echo "delete caches"
+
 if [ -d '_site' ] ; then
     rm -r _site
 fi

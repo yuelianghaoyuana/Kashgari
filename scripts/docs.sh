@@ -2,6 +2,8 @@
 
 set -e
 
+echo "Build API documents to _site folder"
+
 if [ -d '_site_src' ] ; then
     rm -r _site_src
 fi
