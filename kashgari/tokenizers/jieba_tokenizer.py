@@ -23,7 +23,7 @@ class JiebaTokenizer(Tokenizer):
         except ModuleNotFoundError:
             raise ModuleNotFoundError("Jieba module not found, please install use `pip install jieba`")
 
-    def tokenize(self, text: str, **kwargs: Dict[str, Any]) -> List[str]:
+    def tokenize(self, text: str, **kwargs: Any) -> List[str]:
         """
         Tokenize text into token sequence
         Args:

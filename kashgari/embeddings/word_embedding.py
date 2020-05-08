@@ -7,8 +7,6 @@
 # file: word_embedding.py
 # time: 3:06 下午
 
-import logging
-
 import numpy as np
 from gensim.models import KeyedVectors
 from tensorflow import keras
@@ -16,6 +14,7 @@ from typing import Dict, Any
 
 from kashgari.embeddings.abc_embedding import ABCEmbedding
 from kashgari.generators import CorpusGenerator
+from kashgari.logger import logger
 from kashgari.processors.abc_processor import ABCProcessor
 
 L = keras.layers
@@ -34,7 +33,7 @@ class WordEmbedding(ABCEmbedding):
                  sequence_length: int = None,
                  text_processor: ABCProcessor = None,
                  label_processor: ABCProcessor = None,
-                 **kwargs):
+                 **kwargs: Any) -> None:
         super(WordEmbedding, self).__init__(sequence_length=sequence_length,
                                             text_processor=text_processor,
                                             label_processor=label_processor,
@@ -46,9 +45,9 @@ class WordEmbedding(ABCEmbedding):
         self.w2v_kwargs = w2v_kwargs
 
         self.embedding_size = None
-        self.w2v_matrix = None
+        self.w2v_matrix: np.ndarray = None
 
-    def build_text_vocab(self, gen: CorpusGenerator = None, force=False):
+    def build_text_vocab(self, gen: CorpusGenerator = None, *, force: bool = False) -> None:
         if force or not self.text_processor.is_vocab_build:
             w2v = KeyedVectors.load_word2vec_format(self.w2v_path, **self.w2v_kwargs)
 
@@ -73,14 +72,14 @@ class WordEmbedding(ABCEmbedding):
             self.w2v_matrix = vector_matrix
             w2v_top_words = w2v.index2entity[:50]
 
-            logging.debug('------------------------------------------------')
-            logging.debug('Loaded gensim word2vec model')
-            logging.debug('model        : {}'.format(self.w2v_path))
-            logging.debug('word count   : {}'.format(len(self.w2v_matrix)))
-            logging.debug('Top 50 words : {}'.format(w2v_top_words))
-            logging.debug('------------------------------------------------')
+            logger.debug('------------------------------------------------')
+            logger.debug('Loaded gensim word2vec model')
+            logger.debug('model        : {}'.format(self.w2v_path))
+            logger.debug('word count   : {}'.format(len(self.w2v_matrix)))
+            logger.debug('Top 50 words : {}'.format(w2v_top_words))
+            logger.debug('------------------------------------------------')
 
-    def build_embedding_model(self):
+    def build_embedding_model(self) -> None:
         if self.embed_model is None:
             input_tensor = L.Input(shape=(None,),
                                    name=f'input')

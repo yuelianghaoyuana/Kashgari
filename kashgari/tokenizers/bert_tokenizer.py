@@ -46,11 +46,12 @@ class BertTokenizer(Tokenizer):
             pad_index: The index to pad.
             cased: Whether to keep the case.
         """
+        self._token_dict: Dict[str, int]
 
         if token_dict:
-            self._token_dict: Dict[str, int] = token_dict
+            self._token_dict = token_dict
         else:
-            self._token_dict: Dict[str, int] = {}
+            self._token_dict = {}
 
         self._token_dict_inv: Dict[int, str] = {v: k for k, v in self._token_dict.items()}
         self._token_cls: str = token_cls

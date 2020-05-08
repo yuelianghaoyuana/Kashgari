@@ -7,8 +7,8 @@
 # file: bare_embedding.py
 # time: 2:17 下午
 
-from typing import Dict
 from tensorflow import keras
+from typing import Dict, Any
 
 from kashgari.embeddings.abc_embedding import ABCEmbedding
 from kashgari.generators import CorpusGenerator
@@ -26,20 +26,21 @@ class BareEmbedding(ABCEmbedding):
     def __init__(self,
                  sequence_length: int = None,
                  embedding_size: int = 100,
+                 *,
                  text_processor: ABCProcessor = None,
                  label_processor: ABCProcessor = None,
-                 **kwargs):
+                 **kwargs: Any) -> None:
         super(BareEmbedding, self).__init__(sequence_length=sequence_length,
                                             text_processor=text_processor,
                                             label_processor=label_processor,
                                             **kwargs)
-        self.embedding_size = embedding_size
+        self.embedding_size: int = embedding_size
 
-    def build_text_vocab(self, gen: CorpusGenerator = None, force=False):
+    def build_text_vocab(self, gen: CorpusGenerator = None, *, force: bool = False) -> None:
         if force or not self.text_processor.is_vocab_build:
             self.text_processor.build_vocab_dict_if_needs(generator=gen)
 
-    def build_embedding_model(self):
+    def build_embedding_model(self) -> None:
         if self.embed_model is None:
             input_tensor = L.Input(shape=(None,),
                                    name=f'input')

@@ -22,7 +22,8 @@ class TestClassificationProcessor(unittest.TestCase):
 
     def test_multi_label_processor(self):
         from kashgari.corpus import JigsawToxicCommentCorpus
-        file_path = '/Users/brikerman/Downloads/jigsaw-toxic-comment-classification-challenge/train.csv'
+        file_path = TestMacros.jigsaw_mini_corpus
+        print(file_path)
         corpus = JigsawToxicCommentCorpus(file_path)
         x_set, y_set = corpus.load_data()
 
@@ -30,7 +31,7 @@ class TestClassificationProcessor(unittest.TestCase):
 
         processor = ClassificationProcessor(multi_label=True)
         processor.build_vocab_dict_if_needs(corpus_gen)
-        r = processor.numerize_samples(y_set[20:40])
+        r = processor.transform(y_set[20:40])
         print(r)
         print(processor.vocab2idx)
 

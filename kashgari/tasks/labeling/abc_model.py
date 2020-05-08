@@ -13,8 +13,9 @@ from abc import ABC
 
 from seqeval.metrics import classification_report
 from seqeval.metrics.sequence_labeling import get_entities
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Union, TYPE_CHECKING
 
+import kashgari
 from kashgari.embeddings.abc_embedding import ABCEmbedding
 from kashgari.generators import BatchDataGenerator
 from kashgari.generators import CorpusGenerator
@@ -22,13 +23,16 @@ from kashgari.processors import SequenceProcessor
 from kashgari.tasks.abs_task_model import ABCTaskModel
 from kashgari.types import TextSamplesVar
 
+if TYPE_CHECKING:
+    from tensorflow import keras
+
 
 class ABCLabelingModel(ABCTaskModel, ABC):
     def __init__(self,
                  embedding: ABCEmbedding = None,
                  sequence_length: int = None,
                  hyper_parameters: Dict[str, Dict[str, Any]] = None,
-                 **kwargs):
+                 **kwargs: Any):
         """
         Abstract Labeling Model
         Args:
@@ -51,8 +55,8 @@ class ABCLabelingModel(ABCTaskModel, ABC):
             y_validate: TextSamplesVar = None,
             batch_size: int = 64,
             epochs: int = 5,
-            callbacks: List = None,
-            fit_kwargs: Dict = None):
+            callbacks: List['keras.callbacks.Callback'] = None,
+            fit_kwargs: Dict = None) -> 'keras.callbacks.History':
         """
         Trains the model for a given number of epochs with given data set list.
 
@@ -97,8 +101,8 @@ class ABCLabelingModel(ABCTaskModel, ABC):
                       valid_sample_gen: CorpusGenerator = None,
                       batch_size: int = 64,
                       epochs: int = 5,
-                      callbacks: List = None,
-                      fit_kwargs: Dict = None):
+                      callbacks: List['keras.callbacks.Callback'] = None,
+                      fit_kwargs: Dict = None) -> 'keras.callbacks.History':
         """
         Trains the model for a given number of epochs with given data generator.
 
@@ -129,8 +133,8 @@ class ABCLabelingModel(ABCTaskModel, ABC):
         self.tf_model.summary()
 
         train_gen = BatchDataGenerator(train_sample_gen,
-                                       text_processor=self.embedding.text_processor,
-                                       label_processor=self.embedding.label_processor,
+                                       text_processor=self.text_processor,
+                                       label_processor=self.label_processor,
                                        segment=self.embedding.segment,
                                        seq_length=self.embedding.sequence_length,
                                        max_position=self.embedding.max_position,
@@ -140,8 +144,8 @@ class ABCLabelingModel(ABCTaskModel, ABC):
             fit_kwargs = {}
         if valid_sample_gen:
             valid_gen = BatchDataGenerator(valid_sample_gen,
-                                           text_processor=self.embedding.text_processor,
-                                           label_processor=self.embedding.label_processor,
+                                           text_processor=self.text_processor,
+                                           label_processor=self.label_processor,
                                            segment=self.embedding.segment,
                                            seq_length=self.embedding.sequence_length,
                                            max_position=self.embedding.max_position,
@@ -155,13 +159,59 @@ class ABCLabelingModel(ABCTaskModel, ABC):
                                  callbacks=callbacks,
                                  **fit_kwargs)
 
+    def predict(self,  # type: ignore[override]
+                x_data: TextSamplesVar,
+                *,
+                batch_size: int = 32,
+                truncating: bool = False,
+                debug_info: bool = False,
+                predict_kwargs: Dict = None,
+                **kwargs: Any) -> List[List[str]]:
+        """
+        Generates output predictions for the input samples.
+
+        Computation is done in batches.
+
+        Args:
+            x_data: The input data, as a Numpy array (or list of Numpy arrays if the model has multiple inputs).
+            batch_size: Integer. If unspecified, it will default to 32.
+            truncating: remove values from sequences larger than `model.embedding.sequence_length`
+            debug_info: Bool, Should print out the logging info.
+            predict_kwargs: arguments passed to ``predict()`` function of ``tf.keras.Model``
+
+        Returns:
+            array(s) of predictions.
+        """
+        if predict_kwargs is None:
+            predict_kwargs = {}
+        with kashgari.utils.custom_object_scope():
+            if truncating:
+                seq_length = self.embedding.sequence_length
+            else:
+                seq_length = None
+            tensor = self.text_processor.transform(x_data,
+                                                   segment=self.embedding.segment,
+                                                   seq_lengtg=seq_length,
+                                                   max_position=self.embedding.max_position)
+            pred = self.tf_model.predict(tensor, batch_size=batch_size, **predict_kwargs)
+            pred = pred.argmax(-1)
+            lengths = [len(sen) for sen in x_data]
+
+            res: List[List[str]] = self.label_processor.inverse_transform(pred,  # type: ignore
+                                                                          lengths=lengths)
+            if debug_info:
+                logging.info('input: {}'.format(tensor))
+                logging.info('output: {}'.format(pred))
+                logging.info('output argmax: {}'.format(pred.argmax(-1)))
+        return res
+
     def predict_entities(self,
-                         x_data,
-                         batch_size=32,
-                         join_chunk=' ',
-                         truncating=False,
-                         debug_info=False,
-                         predict_kwargs: Dict = None):
+                         x_data: TextSamplesVar,
+                         batch_size: int = 32,
+                         join_chunk: str = ' ',
+                         truncating: bool = False,
+                         debug_info: bool = False,
+                         predict_kwargs: Dict = None) -> List[Dict]:
         """Gets entities from sequence.
 
         Args:
@@ -189,13 +239,14 @@ class ABCLabelingModel(ABCTaskModel, ABC):
         for index, seq in enumerate(new_res):
             seq_data = []
             for entity in seq:
-                res_entities = []
+                res_entities: List[str] = []
                 for i, e in enumerate(text_seq[index][entity[1]:entity[2] + 1]):
                     # Handle bert tokenizer
                     if e.startswith('##') and len(res_entities) > 0:
                         res_entities[-1] += e.replace('##', '')
                     else:
                         res_entities.append(e)
+                value: Union[str, List[str]]
                 if join_chunk is False:
                     value = res_entities
                 else:
@@ -215,12 +266,12 @@ class ABCLabelingModel(ABCTaskModel, ABC):
         return final_res
 
     def evaluate(self,
-                 x_data,
-                 y_data,
-                 batch_size=None,
-                 digits=4,
-                 truncating=False,
-                 debug_info=False) -> Tuple[float, float, Dict]:
+                 x_data: TextSamplesVar,
+                 y_data: TextSamplesVar,
+                 batch_size: int = 32,
+                 digits: int = 4,
+                 truncating: bool = False,
+                 debug_info: bool = False) -> Dict:
         """
         Build a text report showing the main labeling metrics.
 

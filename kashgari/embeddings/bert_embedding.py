@@ -8,9 +8,11 @@
 # time: 2:49 下午
 
 import os
-from typing import Dict
-from kashgari.processors.abc_processor import ABCProcessor
+
+from typing import Dict, Any
+
 from kashgari.embeddings.transformer_embedding import TransformerEmbedding
+from kashgari.processors.abc_processor import ABCProcessor
 
 
 class BertEmbedding(TransformerEmbedding):
@@ -21,11 +23,10 @@ class BertEmbedding(TransformerEmbedding):
 
     def __init__(self,
                  model_folder: str,
-                 layer_nums: int = 4,
                  sequence_length: int = None,
                  text_processor: ABCProcessor = None,
                  label_processor: ABCProcessor = None,
-                 **kwargs):
+                 **kwargs: Any) -> None:
         """
 
         Args:
@@ -45,7 +46,6 @@ class BertEmbedding(TransformerEmbedding):
         kwargs['config_path'] = config_path
         kwargs['checkpoint_path'] = checkpoint_path
         kwargs['model_type'] = 'bert'
-        kwargs['layer_nums'] = layer_nums
         super(BertEmbedding, self).__init__(sequence_length=sequence_length,
                                             text_processor=text_processor,
                                             label_processor=label_processor,

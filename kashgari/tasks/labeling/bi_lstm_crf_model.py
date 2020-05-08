@@ -36,7 +36,7 @@ class BiLSTM_CRF_Model(ABCLabelingModel):
             }
         }
 
-    def build_model_arc(self):
+    def build_model_arc(self) -> None:
         output_dim = self.label_processor.vocab_size
 
         config = self.hyper_parameters
@@ -59,7 +59,7 @@ class BiLSTM_CRF_Model(ABCLabelingModel):
         self.layer_crf = crf
         self.tf_model = keras.Model(embed_model.inputs, tensor)
 
-    def compile_model(self, **kwargs):
+    def compile_model(self, **kwargs: Any) -> None:
         if kwargs.get('loss') is None:
             kwargs['loss'] = self.layer_crf.dense_loss
         if kwargs.get('metrics') is None:

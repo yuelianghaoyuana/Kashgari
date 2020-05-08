@@ -13,11 +13,11 @@ import operator
 import numpy as np
 import tqdm
 from tensorflow.keras.utils import to_categorical
-from typing import List, Union, Dict
+from typing import List, Union, Dict, Optional, Any
 
-from kashgari.types import TextSamplesVar, ClassificationLabelVar, MultiLabelClassificationLabelVar
 from kashgari.generators import CorpusGenerator
 from kashgari.processors.abc_processor import ABCProcessor
+from kashgari.types import TextSamplesVar
 
 
 class ClassificationProcessor(ABCProcessor):
@@ -29,13 +29,13 @@ class ClassificationProcessor(ABCProcessor):
 
     def __init__(self,
                  multi_label: bool = False,
-                 **kwargs: Dict) -> None:
+                 **kwargs: Any) -> None:
         from kashgari.utils import MultiLabelBinarizer
         super(ClassificationProcessor, self).__init__(**kwargs)
         self.multi_label = multi_label
         self.multi_label_binarizer = MultiLabelBinarizer(self.vocab2idx)
 
-    def build_vocab_dict_if_needs(self, generator: CorpusGenerator) -> None:
+    def build_vocab_dict_if_needs(self, generator: Optional[CorpusGenerator]) -> None:
         from kashgari.utils import MultiLabelBinarizer
         if self.vocab2idx:
             return
@@ -72,7 +72,7 @@ class ClassificationProcessor(ABCProcessor):
                   max_position: int = None,
                   segment: bool = False,
                   one_hot: bool = False,
-                  **kwargs: Dict) -> np.ndarray:
+                  **kwargs: Any) -> np.ndarray:
         if self.multi_label:
             sample_tensor = self.multi_label_binarizer.transform(samples)
             return sample_tensor
@@ -87,7 +87,7 @@ class ClassificationProcessor(ABCProcessor):
                           labels: Union[List[int], np.ndarray],
                           *,
                           lengths: List[int] = None,
-                          **kwargs: Dict) -> List[str]:
+                          **kwargs: Any) -> List[str]:
         return [self.idx2vocab[i] for i in labels]
 
 

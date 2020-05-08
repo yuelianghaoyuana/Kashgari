@@ -14,7 +14,7 @@ os.environ['TF_KERAS'] = '1'
 import json
 import codecs
 import logging
-from typing import Dict
+from typing import Dict, List, Any
 from kashgari.embeddings.abc_embedding import ABCEmbedding
 from kashgari.generators import CorpusGenerator
 from kashgari.processors.abc_processor import ABCProcessor
@@ -36,10 +36,9 @@ class TransformerEmbedding(ABCEmbedding):
                  checkpoint_path: str,
                  model_type: str = 'bert',
                  sequence_length: int = None,
-                 layer_nums: int = 4,
                  text_processor: ABCProcessor = None,
                  label_processor: ABCProcessor = None,
-                 **kwargs):
+                 **kwargs: Any) -> None:
         """
         Transformer embedding, based on https://github.com/bojone/bert4keras
         support
@@ -66,11 +65,11 @@ class TransformerEmbedding(ABCEmbedding):
         self.checkpoint_path = checkpoint_path
         self.model_type = model_type
         self.segment = True
-        self.vocab_list = []
+        self.vocab_list: List[str] = []
 
-    def build_text_vocab(self, gen: CorpusGenerator = None, force=False):
+    def build_text_vocab(self, gen: CorpusGenerator = None, *, force: bool = False) -> None:
         if not self.text_processor.is_vocab_build:
-            token2idx = {}
+            token2idx: Dict[str, int] = {}
             with codecs.open(self.vocab_path, 'r', 'utf8') as reader:
                 for line in reader:
                     token = line.strip()
@@ -84,7 +83,7 @@ class TransformerEmbedding(ABCEmbedding):
             self.text_processor.vocab2idx = token2idx
             self.text_processor.idx2vocab = dict([(value, key) for key, value in token2idx.items()])
 
-    def build_embedding_model(self):
+    def build_embedding_model(self) -> None:
         if self.embed_model is None:
             config_path = self.config_path
 

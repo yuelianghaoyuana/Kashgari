@@ -12,10 +12,10 @@ import json
 import pydoc
 import random
 import numpy as np
-from typing import List, Union, TypeVar, Tuple, Type, Dict
+from typing import List, Union, TypeVar, Tuple, Type, Dict, Any
 
 from tensorflow import keras
-
+from tensorflow.keras.utils import CustomObjectScope
 from kashgari import custom_objects
 from kashgari.embeddings.abc_embedding import ABCEmbedding
 from kashgari.tasks.classification.abc_model import ABCClassificationModel
@@ -59,7 +59,7 @@ def unison_shuffled_copies(a: List[T],
     return list(a), list(b)
 
 
-def custom_object_scope():
+def custom_object_scope() -> CustomObjectScope:
     return keras.utils.custom_object_scope(custom_objects)
 
 
@@ -77,11 +77,13 @@ def load_model(model_path: str, load_weights: bool = True) -> Union[ABCClassific
     with open(os.path.join(model_path, 'model_info.json'), 'r') as f:
         model_info = json.load(f)
 
-    model_class: Type[ABCClassificationModel] = pydoc.locate(f"{model_info['module']}.{model_info['class_name']}")
+    model_class: Type[ABCClassificationModel] = pydoc.locate(  # type: ignore
+        f"{model_info['module']}.{model_info['class_name']}")
     model_json_str = json.dumps(model_info['tf_model'])
 
     embed_info = model_info['embedding']
-    embed_class: Type[ABCEmbedding] = pydoc.locate(f"{embed_info['module']}.{embed_info['class_name']}")
+    embed_class: Type[ABCEmbedding] = pydoc.locate(  # type: ignore
+        f"{embed_info['module']}.{embed_info['class_name']}")
     embedding: ABCEmbedding = embed_class.load_saved_model_embedding(embed_info)
 
     model = model_class(embedding=embedding)
@@ -94,7 +96,7 @@ def load_model(model_path: str, load_weights: bool = True) -> Union[ABCClassific
         layer.set_weights(model.tf_model.get_layer(layer.name).get_weights())
 
     if isinstance(model.tf_model.layers[-1], ConditionalRandomField):
-        model.layer_crf = model.tf_model.layers[-1]
+        model.layer_crf = model.tf_model.layers[-1]  # type: ignore
 
     return model
 
@@ -126,14 +128,4 @@ class MultiLabelBinarizer:
 
 
 if __name__ == "__main__":
-    a_b = MultiLabelBinarizer(vocab2idx={'identity_hate': 0,
-                                         'insult': 1,
-                                         'obscene': 2,
-                                         'severe_toxic': 3,
-                                         'threat': 4,
-                                         'toxic': 5}
-                              )
-    r = a_b.transform([[], ['identity_hate'], ['obscene', 'threat']])
-    print(r)
-    xx = np.random.random((10, 6))
-    print(a_b.inverse_transform(xx, threshold=0.9))
+    pass

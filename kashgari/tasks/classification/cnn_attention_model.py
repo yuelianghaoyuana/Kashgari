@@ -41,7 +41,7 @@ class CNN_Attention_Model(ABCClassificationModel, ABC):
             },
         }
 
-    def build_model_arc(self):
+    def build_model_arc(self) -> None:
         output_dim = self.label_processor.vocab_size
         config = self.hyper_parameters
 

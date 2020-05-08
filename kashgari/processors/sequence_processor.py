@@ -7,16 +7,15 @@
 # file: text_processor.py
 # time: 12:27 下午
 
-import logging
 import collections
+import logging
 import operator
 
-import tqdm
 import numpy as np
-from typing import Dict, List
-
+import tqdm
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.utils import to_categorical
+from typing import Dict, List, Any, Optional
 
 from kashgari.generators import CorpusGenerator
 from kashgari.processors.abc_processor import ABCProcessor
@@ -44,7 +43,7 @@ class SequenceProcessor(ABCProcessor):
     def __init__(self,
                  vocab_dict_type: str = 'text',
                  min_count: int = 3,
-                 **kwargs):
+                 **kwargs: Any) -> None:
         """
 
         Args:
@@ -52,10 +51,6 @@ class SequenceProcessor(ABCProcessor):
             **kwargs:
         """
         super(SequenceProcessor, self).__init__(**kwargs)
-        self.token_pad: str = kwargs.get('token_pad', '[PAD]')
-        self.token_unk: str = kwargs.get('token_unk', '[UNK]')
-        self.token_bos: str = kwargs.get('token_bos', '[BOS]')
-        self.token_eos: str = kwargs.get('token_eos', '[EOS]')
 
         self.vocab_dict_type = vocab_dict_type
         self.min_count = min_count
@@ -76,11 +71,11 @@ class SequenceProcessor(ABCProcessor):
 
         self._showed_seq_len_warning = False
 
-    def build_vocab_dict_if_needs(self, generator: CorpusGenerator):
+    def build_vocab_dict_if_needs(self, generator: Optional[CorpusGenerator]) -> None:
         if not self.vocab2idx:
             vocab2idx = self._initial_vocab_dic
 
-            token2count = {}
+            token2count: Dict[str, int] = {}
 
             for sentence, label in tqdm.tqdm(generator, desc="Preparing text vocab dict"):
                 if self.vocab_dict_type == 'text':
@@ -113,7 +108,7 @@ class SequenceProcessor(ABCProcessor):
                   max_position: int = None,
                   segment: bool = False,
                   one_hot: bool = False,
-                  **kwargs) -> np.ndarray:
+                  **kwargs: Any) -> np.ndarray:
         if seq_length is None:
             seq_length = max([len(i) for i in samples])
             if max_position and seq_length > max_position:
@@ -143,10 +138,11 @@ class SequenceProcessor(ABCProcessor):
         else:
             return token_ids
 
-    def inverse_transform(self,
+    def inverse_transform(self,  # type: ignore[override]
                           labels: List[str],
+                          *,
                           lengths: List[int] = None,
-                          **kwargs) -> List[List[str]]:
+                          **kwargs: Any) -> List[List[str]]:
         result = []
         for index, seq in enumerate(labels):
             labels_ = []

@@ -92,6 +92,10 @@ class TestMacros:
                         "http://s3.bmio.net/kashgari/sample_w2v.txt",
                         cache_dir=DATA_PATH)
 
+    jigsaw_mini_corpus = get_file('jigsaw-toxic-comment-corpus-mini.csv',
+                                  "http://s3.bmio.net/kashgari/jigsaw-toxic-comment-corpus-mini.csv",
+                                  cache_dir=DATA_PATH)
+
     chinese_daily = ChineseDailyNerCorpus.load_data('valid')
 
     smp_corpus = SMP2018ECDTCorpus.load_data('valid')

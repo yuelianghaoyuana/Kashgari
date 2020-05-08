@@ -190,15 +190,24 @@ class JigsawToxicCommentCorpus:
     to a folder. Then init a JigsawToxicCommentCorpus object with `train.csv` path.
     """
 
-    def __init__(self, corpus_train_csv_path: str, sample_count: int = None) -> None:
+    def __init__(self,
+                 corpus_train_csv_path: str,
+                 sample_count: int = None,
+                 tokenizer: Tokenizer = None) -> None:
         self.file_path = corpus_train_csv_path
         self.train_ids = []
         self.test_ids = []
         self.valid_ids = []
 
-        self._tokenizer: Tokenizer
+        if tokenizer is None:
+            self.tokenizer = BertTokenizer()
+        else:
+            self.tokenizer = tokenizer
+
         if sample_count is None:
-            sample_count = 159571
+            df = pd.read_csv(self.file_path)
+            sample_count = len(df)
+            del df
         self.sample_count = sample_count
 
         for i in range(self.sample_count):
@@ -219,14 +228,11 @@ class JigsawToxicCommentCorpus:
         return y
 
     def _text_process(self, text: str) -> List[str]:
-        if self._tokenizer is None:
-            self._tokenizer = BertTokenizer()
-        return self._tokenizer.tokenize(text)
+        return self.tokenizer.tokenize(text)
 
     def load_data(self,
                   subset_name: str = 'train',
-                  shuffle: bool = True,
-                  text_process_func: Callable = None) -> Tuple[List[List[str]], List[List[str]]]:
+                  shuffle: bool = True) -> Tuple[List[List[str]], List[List[str]]]:
         """
         Load dataset as sequence labeling format, char level tokenized
 
@@ -242,7 +248,6 @@ class JigsawToxicCommentCorpus:
         Args:
            subset_name: {train, test, valid}
            shuffle: should shuffle or not, default True.
-           text_process_func: function to process sample text, default split by space.
 
         Returns:
            dataset_features and dataset labels
@@ -251,9 +256,7 @@ class JigsawToxicCommentCorpus:
         df = pd.read_csv(self.file_path)
         df = df[:self.sample_count]
         df['y'] = df.apply(self._extract_label, axis=1)
-        if text_process_func is None:
-            text_process_func = self._text_process
-        df['x'] = df['comment_text'].apply(text_process_func)
+        df['x'] = df['comment_text'].apply(self._text_process)
         df = df[['x', 'y']]
         if subset_name == 'train':
             df = df.loc[self.train_ids]
