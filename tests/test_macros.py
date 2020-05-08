@@ -11,7 +11,7 @@ import random
 import logging
 from kashgari.macros import DATA_PATH
 from tensorflow.keras.utils import get_file
-from kashgari.corpus import ChineseDailyNerCorpus, SMP2018ECDTCorpus
+from kashgari.corpus import ChineseDailyNerCorpus, SMP2018ECDTCorpus, JigsawToxicCommentCorpus
 
 logging.basicConfig(level='DEBUG')
 
@@ -92,9 +92,11 @@ class TestMacros:
                         "http://s3.bmio.net/kashgari/sample_w2v.txt",
                         cache_dir=DATA_PATH)
 
-    jigsaw_mini_corpus = get_file('jigsaw-toxic-comment-corpus-mini.csv',
-                                  "http://s3.bmio.net/kashgari/jigsaw-toxic-comment-corpus-mini.csv",
-                                  cache_dir=DATA_PATH)
+    jigsaw_mini_corpus_path = get_file('jigsaw-toxic-comment-corpus-mini.csv',
+                                       "http://s3.bmio.net/kashgari/jigsaw-toxic-comment-corpus-mini.csv",
+                                       cache_dir=DATA_PATH)
+
+    jigsaw_mini_corpus = JigsawToxicCommentCorpus(jigsaw_mini_corpus_path)
 
     chinese_daily = ChineseDailyNerCorpus.load_data('valid')
 

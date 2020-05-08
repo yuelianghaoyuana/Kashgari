@@ -86,7 +86,7 @@ def load_model(model_path: str, load_weights: bool = True) -> Union[ABCClassific
         f"{embed_info['module']}.{embed_info['class_name']}")
     embedding: ABCEmbedding = embed_class.load_saved_model_embedding(embed_info)
 
-    model = model_class(embedding=embedding)
+    model = model_class(embedding=embedding, **model_info['config'])
     model.tf_model = keras.models.model_from_json(model_json_str, custom_objects)
     if load_weights:
         model.tf_model.load_weights(os.path.join(model_path, 'model_weights.h5'))

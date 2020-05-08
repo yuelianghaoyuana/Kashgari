@@ -55,9 +55,27 @@ class TestBiLSTM_Model(unittest.TestCase):
         new_model.evaluate(valid_x, valid_y)
 
     def test_multi_label(self):
+        corpus = TestMacros.jigsaw_mini_corpus
         model = self.TASK_MODEL_CLASS(sequence_length=20, multi_label=True)
-        x, y = TestMacros.load_multi_label_classification_corpus()
+        x, y = corpus.load_data()
         model.fit(x, y, epochs=self.EPOCH_COUNT)
+
+        model_path = os.path.join(tempfile.gettempdir(), str(time.time()))
+        original_y = model.predict(x[:20])
+        model.save(model_path)
+        del model
+        new_model = load_model(model_path)
+        new_model.tf_model.summary()
+        new_y = new_model.predict(x[:20])
+        print(new_model.multi_label)
+
+        print(model_path)
+        print(f"new_y: {new_y}")
+        print(f"original_y: {original_y}")
+
+        assert new_y == original_y
+
+        new_model.evaluate(x, y)
 
     def test_with_word_embedding(self):
         self.w2v_embedding.set_sequence_length(50)

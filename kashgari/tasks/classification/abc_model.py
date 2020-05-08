@@ -31,6 +31,11 @@ if TYPE_CHECKING:
 class ABCClassificationModel(ABCTaskModel, ABC):
     __task__ = 'classification'
 
+    def info(self) -> Dict:
+        info = super(ABCClassificationModel, self).info()
+        info['config']['multi_label'] = self.multi_label
+        return info
+
     def __init__(self,
                  embedding: ABCEmbedding = None,
                  *,

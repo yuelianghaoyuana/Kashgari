@@ -22,8 +22,7 @@ class TestClassificationProcessor(unittest.TestCase):
 
     def test_multi_label_processor(self):
         from kashgari.corpus import JigsawToxicCommentCorpus
-        file_path = TestMacros.jigsaw_mini_corpus
-        print(file_path)
+        file_path = TestMacros.jigsaw_mini_corpus_path
         corpus = JigsawToxicCommentCorpus(file_path)
         x_set, y_set = corpus.load_data()
 
