@@ -4,8 +4,8 @@
 # contact: eliyar917@gmail.com
 # blog: https://eliyar.biz
 
-# file: bi_lstm_crf_model.py
-# time: 4:09 下午
+# file: bi_gru_crf_model.py
+# time: 5:28 下午
 
 from typing import Dict, Any
 
@@ -19,20 +19,20 @@ from kashgari.tasks.labeling.abc_model import ABCLabelingModel
 kashgari.custom_objects['ConditionalRandomField'] = ConditionalRandomField
 
 
-class BiLSTM_CRF_Model(ABCLabelingModel):
+class BiGRU_CRF_Model(ABCLabelingModel):
     @classmethod
     def default_hyper_parameters(cls) -> Dict[str, Dict[str, Any]]:
         return {
-            'layer_lstm': {
+            'layer_gru': {
                 'units': 128,
                 'return_sequences': True
             },
             'layer_dropout': {
                 'rate': 0.4
             },
-            'layer_dense': {},
-            'layer_activation': {
-                'activation': 'softmax'
+            'layer_dense': {
+                'units': 64,
+                'activation': 'tanh'
             }
         }
 
@@ -45,9 +45,10 @@ class BiLSTM_CRF_Model(ABCLabelingModel):
         crf = ConditionalRandomField(output_dim, name='layer_crf')
 
         layer_stack = [
-            L.Bidirectional(L.LSTM(**config['layer_lstm'], name='layer_lstm')),
+            L.Bidirectional(L.GRU(**config['layer_gru']), name='layer_gru'),
             L.Dropout(**config['layer_dropout'], name='layer_dropout'),
-            L.Dense(output_dim, **config['layer_dense']),
+            L.Dense(**config['layer_dense'], name='layer_dense'),
+            L.Dense(output_dim, name='layer_crf_dense'),
             crf
         ]
 
@@ -63,8 +64,16 @@ class BiLSTM_CRF_Model(ABCLabelingModel):
             kwargs['loss'] = self.layer_crf.dense_loss
         if kwargs.get('metrics') is None:
             kwargs['metrics'] = [self.layer_crf.dense_accuracy]
-        super(BiLSTM_CRF_Model, self).compile_model(**kwargs)
+        super(BiGRU_CRF_Model, self).compile_model(**kwargs)
 
 
 if __name__ == "__main__":
-    pass
+    from kashgari.corpus import ChineseDailyNerCorpus
+
+    x, y = ChineseDailyNerCorpus.load_data('test')
+    model = BiGRU_CRF_Model()
+    model.fit(x, y, epochs=4)
+    print(model.info())
+    print(model.predict_entities(x[:3]))
+    model.save('./model')
+

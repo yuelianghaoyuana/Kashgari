@@ -4,8 +4,8 @@
 # contact: eliyar917@gmail.com
 # blog: https://eliyar.biz
 
-# file: bi_lstm_model.py
-# time: 4:36 下午
+# file: cnn_lstm_model.py
+# time: 5:28 下午
 
 from typing import Dict, Any
 
@@ -15,11 +15,12 @@ from kashgari.layers import L
 from kashgari.tasks.labeling.abc_model import ABCLabelingModel
 
 
-class BiLSTM_Model(ABCLabelingModel):
+class CNN_LSTM_Model(ABCLabelingModel):
+
     @classmethod
     def default_hyper_parameters(cls) -> Dict[str, Dict[str, Any]]:
         return {
-            'layer_blstm': {
+            'layer_bgru': {
                 'units': 128,
                 'return_sequences': True
             },
@@ -39,11 +40,13 @@ class BiLSTM_Model(ABCLabelingModel):
         embed_model = self.embedding.embed_model
 
         layer_stack = [
-            L.Bidirectional(L.LSTM(**config['layer_blstm']), name='layer_blstm'),
+            L.Bidirectional(L.GRU(**config['layer_bgru']), name='layer_bgru'),
             L.Dropout(**config['layer_dropout'], name='layer_dropout'),
-            L.Dense(output_dim, **config['layer_time_distributed']),
+            # L.Dense(output_dim, **config['layer_time_distributed']),
+            L.TimeDistributed(L.Dense(output_dim, **config['layer_time_distributed']), name='layer_time_distributed'),
             L.Activation(**config['layer_activation'])
         ]
+
         tensor = embed_model.output
         for layer in layer_stack:
             tensor = layer(tensor)
@@ -52,10 +55,4 @@ class BiLSTM_Model(ABCLabelingModel):
 
 
 if __name__ == "__main__":
-    from kashgari.corpus import ChineseDailyNerCorpus
-
-    x, y = ChineseDailyNerCorpus.load_data()
-    x_valid, y_valid = ChineseDailyNerCorpus.load_data('valid')
-    model = BiLSTM_Model()
-    model.fit(x, y, x_valid, y_valid, epochs=2)
-    model.evaluate(*ChineseDailyNerCorpus.load_data('test'))
+    pass
