@@ -7,13 +7,11 @@
 # file: abc_model.py
 # time: 4:30 下午
 
-import random
 import logging
+import random
 from abc import ABC
 
-from kashgari.toolkits.reports.sequence_labeling import sequence_labeling_report
-from seqeval.metrics.sequence_labeling import get_entities
-from typing import List, Dict, Any, Tuple, Union, TYPE_CHECKING
+from typing import List, Dict, Any, Union, TYPE_CHECKING
 
 import kashgari
 from kashgari.embeddings.abc_embedding import ABCEmbedding
@@ -21,6 +19,8 @@ from kashgari.generators import BatchDataGenerator
 from kashgari.generators import CorpusGenerator
 from kashgari.processors import SequenceProcessor
 from kashgari.tasks.abs_task_model import ABCTaskModel
+from kashgari.toolkits.metrics.sequence_labeling import get_entities
+from kashgari.toolkits.metrics.sequence_labeling import sequence_labeling_report
 from kashgari.types import TextSamplesVar
 
 if TYPE_CHECKING:

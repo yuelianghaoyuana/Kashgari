@@ -48,9 +48,6 @@ if os.environ.get('READTHEDOCS') == 'True':
         'bert4keras',
         'bert4keras.models',
         'sklearn',
-        'seqeval',
-        'seqeval.metrics',
-        'seqeval.metrics.sequence_labeling',
         'bert4keras.layers'
     ]
 else:

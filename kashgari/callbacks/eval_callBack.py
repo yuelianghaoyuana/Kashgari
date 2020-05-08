@@ -7,14 +7,8 @@
 # file: eval_callBack.py
 # time: 6:53 下午
 
-import logging
-import os
-
-from seqeval import metrics as seq_metrics
-from sklearn import metrics
 from tensorflow import keras
 
-from kashgari import macros
 from kashgari.tasks.abs_task_model import ABCTaskModel
 
 

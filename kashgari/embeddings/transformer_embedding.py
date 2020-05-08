@@ -86,8 +86,8 @@ class TransformerEmbedding(ABCEmbedding):
     def build_embedding_model(self) -> None:
         if self.embed_model is None:
             config_path = self.config_path
-
-            config = json.load(open(config_path))
+            print(open(config_path, 'r').read())
+            config = json.loads(open(config_path, 'r').read())
             if 'max_position' in config:
                 self.max_position = config['max_position']
             else:
