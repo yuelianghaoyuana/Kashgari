@@ -241,17 +241,19 @@ class JigsawToxicCommentCorpus:
 
         labels: ``[['obscene', 'insult'], ...]``
 
-        Sample::
-           corpus = JigsawToxicCommentCorpus('<train.csv file-path>')
-           train_x, train_y = corpus.load_data('train')
-           test_x, test_y = corpus.load_data('test')
-
         Args:
            subset_name: {train, test, valid}
            shuffle: should shuffle or not, default True.
 
         Returns:
            dataset_features and dataset labels
+
+        Examples:
+
+            >>> from kashgari.corpus import JigsawToxicCommentCorpus
+            >>> corpus = JigsawToxicCommentCorpus('<train.csv file-path>')
+            >>> train_x, train_y = corpus.load_data('train')
+            >>> test_x, test_y = corpus.load_data('test')
         """
 
         df = pd.read_csv(self.file_path)
@@ -281,3 +283,6 @@ if __name__ == "__main__":
 
     for i in y[:20]:
         print(i)
+
+    import numpy as np
+    np.sum()

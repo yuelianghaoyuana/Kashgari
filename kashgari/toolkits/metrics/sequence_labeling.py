@@ -283,10 +283,10 @@ def sequence_labeling_report(y_true,
         report: string. Text summary of the precision, recall, F1 score for each class.
 
     Examples:
-        >>> from seqeval.metrics import classification_report
+        >>> from kashgari.toolkits.metrics.sequence_labeling import sequence_labeling_report
         >>> y_true = [['O', 'O', 'O', 'B-MISC', 'I-MISC', 'I-MISC', 'O'], ['B-PER', 'I-PER', 'O']]
         >>> y_pred = [['O', 'O', 'B-MISC', 'I-MISC', 'I-MISC', 'I-MISC', 'O'], ['B-PER', 'I-PER', 'O']]
-        >>> print(classification_report(y_true, y_pred))
+        >>> report = sequence_labeling_report(y_true, y_pred)
                      precision    recall  f1-score   support
         <BLANKLINE>
                MISC       0.00      0.00      0.00         1
@@ -312,7 +312,7 @@ def sequence_labeling_report(y_true,
     width = max(name_width, len(last_line_heading), digits)
 
     headers = ["precision", "recall", "f1-score", "support"]
-    head_fmt = u'{:>{width}s} ' + u' {:>9}' * len(headers)
+    head_fmt = u'\n{:>{width}s} ' + u' {:>9}' * len(headers)
     report = head_fmt.format(u'', *headers, width=width)
     report += u'\n\n'
 

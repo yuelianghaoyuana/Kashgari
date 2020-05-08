@@ -55,7 +55,7 @@ class ABCTaskModel(ABC):
         else:
             self.embedding = embedding
 
-        if sequence_length:
+        if sequence_length and sequence_length != self.embedding.sequence_length:
             if self.embedding.sequence_length is None:
                 self.embedding.set_sequence_length(sequence_length)
             else:
