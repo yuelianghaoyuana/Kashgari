@@ -199,6 +199,7 @@ class JigsawToxicCommentCorpus:
         self.test_ids = []
         self.valid_ids = []
 
+        self.tokenizer: Tokenizer
         if tokenizer is None:
             self.tokenizer = BertTokenizer()
         else:
