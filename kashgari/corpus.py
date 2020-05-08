@@ -7,14 +7,18 @@
 # file: corpus.py
 # time: 12:38 下午
 
-import os
 import logging
+import os
+from typing import List, Union
+from typing import Tuple, Callable
+
 import numpy as np
 import pandas as pd
-from kashgari import macros as K
-from typing import Tuple, List, Callable
 from tensorflow.keras.utils import get_file
+
+from kashgari import macros as K
 from kashgari import utils
+from kashgari.tokenizers.base_tokenizer import Tokenizer
 from kashgari.tokenizers.bert_tokenizer import BertTokenizer
 
 CORPUS_PATH = os.path.join(K.DATA_PATH, 'corpus')
@@ -39,7 +43,8 @@ class DataReader:
         x_data, y_data = [], []
         with open(file_path, 'r', encoding='utf-8') as f:
             lines = f.read().splitlines()
-            x, y = [], []
+            x: List[str] = []
+            y: List[str] = []
             for line in lines:
                 rows = line.split(' ')
                 if len(rows) == 1:
@@ -185,13 +190,13 @@ class JigsawToxicCommentCorpus:
     to a folder. Then init a JigsawToxicCommentCorpus object with `train.csv` path.
     """
 
-    def __init__(self, corpus_train_csv_path: str, sample_count: int=None):
+    def __init__(self, corpus_train_csv_path: str, sample_count: int = None) -> None:
         self.file_path = corpus_train_csv_path
         self.train_ids = []
         self.test_ids = []
         self.valid_ids = []
 
-        self._tokenizer = None
+        self._tokenizer: Tokenizer
         if sample_count is None:
             sample_count = 159571
         self.sample_count = sample_count
@@ -206,7 +211,7 @@ class JigsawToxicCommentCorpus:
                 self.valid_ids.append(i)
 
     @classmethod
-    def _extract_label(cls, row) -> List[str]:
+    def _extract_label(cls, row: pd.Series) -> List[str]:
         y = []
         for label in ['toxic', 'severe_toxic', 'obscene', 'threat', 'insult', 'identity_hate']:
             if row[label] == 1:

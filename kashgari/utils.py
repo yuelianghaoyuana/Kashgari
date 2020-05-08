@@ -20,10 +20,9 @@ from kashgari import custom_objects
 from kashgari.embeddings.abc_embedding import ABCEmbedding
 from kashgari.tasks.classification.abc_model import ABCClassificationModel
 from kashgari.tasks.labeling.abc_model import ABCLabelingModel
+from kashgari.types import MultiLabelClassificationLabelVar
 
 T = TypeVar("T")
-T1 = TypeVar("T1")
-T2 = TypeVar("T2")
 
 
 def get_list_subset(target: List[T], index_list: List[int]) -> List[T]:
@@ -39,7 +38,8 @@ def get_list_subset(target: List[T], index_list: List[int]) -> List[T]:
     return [target[i] for i in index_list if i < len(target)]
 
 
-def unison_shuffled_copies(a: T1, b: T2) -> Tuple[T1, T2]:
+def unison_shuffled_copies(a: List[T],
+                           b: List[T]) -> Union[Tuple[List[T], ...], Tuple[np.ndarray, ...]]:
     """
     Union shuffle two arrays
     Args:
@@ -108,7 +108,7 @@ class MultiLabelBinarizer:
     def classes(self) -> List[str]:
         return list(self.idx2vocab.values())
 
-    def transform(self, samples: List[Union[List[str], Tuple[str]]]) -> np.ndarray:
+    def transform(self, samples: MultiLabelClassificationLabelVar) -> np.ndarray:
         data = np.zeros((len(samples), len(self.vocab2idx)))
         for sample_index, sample in enumerate(samples):
             for label in sample:
@@ -126,14 +126,14 @@ class MultiLabelBinarizer:
 
 
 if __name__ == "__main__":
-    a = MultiLabelBinarizer(vocab2idx={'identity_hate': 0,
-                                       'insult': 1,
-                                       'obscene': 2,
-                                       'severe_toxic': 3,
-                                       'threat': 4,
-                                       'toxic': 5}
-                            )
-    r = a.transform([[], ['identity_hate'], ['obscene', 'threat']])
+    a_b = MultiLabelBinarizer(vocab2idx={'identity_hate': 0,
+                                         'insult': 1,
+                                         'obscene': 2,
+                                         'severe_toxic': 3,
+                                         'threat': 4,
+                                         'toxic': 5}
+                              )
+    r = a_b.transform([[], ['identity_hate'], ['obscene', 'threat']])
     print(r)
-    x = np.random.random((10, 6))
-    print(a.inverse_transform(x, threshold=0.9))
+    xx = np.random.random((10, 6))
+    print(a_b.inverse_transform(xx, threshold=0.9))

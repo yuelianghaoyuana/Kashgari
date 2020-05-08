@@ -107,13 +107,13 @@ class SequenceProcessor(ABCProcessor):
                 logging.info(f"Token: {token:8s} -> {index}")
             logging.info("------ Build vocab dict finished, Top 10 token ------")
 
-    def numerize_samples(self,
-                         samples: TextSamplesVar,
-                         seq_length: int = None,
-                         max_position: int = None,
-                         segment: bool = False,
-                         one_hot: bool = False,
-                         **kwargs) -> np.ndarray:
+    def transform(self,
+                  samples: TextSamplesVar,
+                  seq_length: int = None,
+                  max_position: int = None,
+                  segment: bool = False,
+                  one_hot: bool = False,
+                  **kwargs) -> np.ndarray:
         if seq_length is None:
             seq_length = max([len(i) for i in samples])
             if max_position and seq_length > max_position:
@@ -143,18 +143,18 @@ class SequenceProcessor(ABCProcessor):
         else:
             return token_ids
 
-    def reverse_numerize(self,
-                         indexs: List[str],
-                         lengths: List[int] = None,
-                         **kwargs) -> List[List[str]]:
+    def inverse_transform(self,
+                          labels: List[str],
+                          lengths: List[int] = None,
+                          **kwargs) -> List[List[str]]:
         result = []
-        for index, seq in enumerate(indexs):
-            labels = []
+        for index, seq in enumerate(labels):
+            labels_ = []
             for idx in seq:
-                labels.append(self.idx2vocab[idx])
+                labels_.append(self.idx2vocab[idx])
             if lengths is not None:
-                labels = labels[:lengths[index]]
-            result.append(labels)
+                labels_ = labels_[:lengths[index]]
+            result.append(labels_)
         return result
 
 
@@ -168,4 +168,3 @@ if __name__ == "__main__":
     p = SequenceProcessor(vocab_dict_type='labeling')
     p.build_vocab_dict_if_needs(gen)
     print(p.vocab2idx)
-

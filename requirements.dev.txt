@@ -1,6 +1,7 @@
 # test & coverage
 flake8
 flake8-builtins
+flake8-mypy
 pytest
 pytest-cov
 coveralls

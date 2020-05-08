@@ -46,4 +46,4 @@ jobs:
       install:
         - pip install flake8 flake8-builtins
       script:
-        - flake8 kashgari
+        - flake8 kashgari --config-file lint.ini

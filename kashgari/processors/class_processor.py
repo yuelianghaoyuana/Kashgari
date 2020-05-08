@@ -12,10 +12,10 @@ import operator
 
 import numpy as np
 import tqdm
-from typing import Dict
 from tensorflow.keras.utils import to_categorical
-from typing import List
+from typing import List, Union, Dict
 
+from kashgari.types import TextSamplesVar, ClassificationLabelVar, MultiLabelClassificationLabelVar
 from kashgari.generators import CorpusGenerator
 from kashgari.processors.abc_processor import ABCProcessor
 
@@ -29,19 +29,19 @@ class ClassificationProcessor(ABCProcessor):
 
     def __init__(self,
                  multi_label: bool = False,
-                 **kwargs):
+                 **kwargs: Dict) -> None:
         from kashgari.utils import MultiLabelBinarizer
         super(ClassificationProcessor, self).__init__(**kwargs)
         self.multi_label = multi_label
         self.multi_label_binarizer = MultiLabelBinarizer(self.vocab2idx)
 
-    def build_vocab_dict_if_needs(self, generator: CorpusGenerator):
+    def build_vocab_dict_if_needs(self, generator: CorpusGenerator) -> None:
         from kashgari.utils import MultiLabelBinarizer
         if self.vocab2idx:
             return
-        vocab2idx = {}
 
-        token2count = {}
+        vocab2idx: Dict[str, int] = {}
+        token2count: Dict[str, int] = {}
 
         if self.multi_label:
             for _, label in tqdm.tqdm(generator, desc="Preparing classification label vocab dict"):
@@ -65,11 +65,14 @@ class ClassificationProcessor(ABCProcessor):
         self.idx2vocab = dict([(v, k) for k, v in self.vocab2idx.items()])
         self.multi_label_binarizer = MultiLabelBinarizer(self.vocab2idx)
 
-    def numerize_samples(self,
-                         samples: List[str],
-                         seq_length: int = None,
-                         one_hot: bool = False,
-                         **kwargs) -> np.ndarray:
+    def transform(self,
+                  samples: TextSamplesVar,
+                  *,
+                  seq_length: int = None,
+                  max_position: int = None,
+                  segment: bool = False,
+                  one_hot: bool = False,
+                  **kwargs: Dict) -> np.ndarray:
         if self.multi_label:
             sample_tensor = self.multi_label_binarizer.transform(samples)
             return sample_tensor
@@ -80,11 +83,12 @@ class ClassificationProcessor(ABCProcessor):
         else:
             return np.array(sample_tensor)
 
-    def reverse_numerize(self,
-                         indexs: List[str],
-                         lengths: List[int] = None,
-                         **kwargs) -> List[str]:
-        return [self.idx2vocab[i] for i in indexs]
+    def inverse_transform(self,
+                          labels: Union[List[int], np.ndarray],
+                          *,
+                          lengths: List[int] = None,
+                          **kwargs: Dict) -> List[str]:
+        return [self.idx2vocab[i] for i in labels]
 
 
 if __name__ == "__main__":

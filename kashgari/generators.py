@@ -8,23 +8,25 @@
 # time: 4:53 下午
 
 from abc import ABC
-import random
 import numpy as np
 from typing import List, Any, Tuple
-from typing import Iterable
+from typing import Iterable, Iterator, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from kashgari.processors.abc_processor import ABCProcessor
 
 
 class ABCGenerator(Iterable, ABC):
-    def __init__(self, buffer_size=2000):
+    def __init__(self, buffer_size: int = 2000) -> None:
         self.buffer_size = buffer_size
 
-    def __iter__(self) -> Tuple[Any, Any]:
+    def __iter__(self) -> Iterator[Tuple[Any, Any]]:
         raise NotImplementedError
 
-    def __len__(self):
+    def __len__(self) -> int:
         raise NotImplementedError
 
-    def generator(self):
+    def generator(self) -> Iterator[Tuple[Any, Any]]:
         """
         return a generator with shuffle
         """
@@ -43,30 +45,35 @@ class ABCGenerator(Iterable, ABC):
 
 class CorpusGenerator(ABCGenerator):
 
-    def __init__(self, x_data: List, y_data: List, buffer_size=2000):
+    def __init__(self,
+                 x_data: List,
+                 y_data: List,
+                 *,
+                 buffer_size: int = 2000) -> None:
         super(CorpusGenerator, self).__init__(buffer_size=buffer_size)
         self.x_data = x_data
         self.y_data = y_data
         self.buffer_size = buffer_size
 
-    def __iter__(self) -> Tuple[Any, Any]:
+    def __iter__(self) -> Iterator[Tuple[Any, Any]]:
         for i in range(len(self.x_data)):
             yield self.x_data[i], self.y_data[i]
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.x_data)
 
 
 class BatchDataGenerator(Iterable):
     def __init__(self,
                  corpus: CorpusGenerator,
-                 text_processor,
-                 label_processor,
+                 *,
+                 text_processor: 'ABCProcessor',
+                 label_processor: 'ABCProcessor',
                  seq_length: int = None,
                  max_position: int = None,
                  segment: bool = False,
-                 batch_size=64,
-                 buffer_size=None):
+                 batch_size: int = 64,
+                 buffer_size: int = None):
         self.corpus = corpus
         self.text_processor = text_processor
         self.label_processor = label_processor
@@ -85,35 +92,35 @@ class BatchDataGenerator(Iterable):
     def __len__(self) -> int:
         return max(len(self.corpus) // self.batch_size, 1)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         while True:
             batch_x, batch_y = [], []
             for x, y in self.corpus.generator():
                 batch_x.append(x)
                 batch_y.append(y)
                 if len(batch_x) == self.batch_size:
-                    x_tensor = self.text_processor.numerize_samples(batch_x,
-                                                                    seq_length=self.seq_length,
-                                                                    max_position=self.max_position,
-                                                                    segment=self.segment)
-                    y_tensor = self.label_processor.numerize_samples(batch_y,
-                                                                     seq_length=self.seq_length,
-                                                                     one_hot=True)
+                    x_tensor = self.text_processor.transform(batch_x,
+                                                             seq_length=self.seq_length,
+                                                             max_position=self.max_position,
+                                                             segment=self.segment)
+                    y_tensor = self.label_processor.transform(batch_y,
+                                                              seq_length=self.seq_length,
+                                                              one_hot=True)
                     yield x_tensor, y_tensor
                     batch_x, batch_y = [], []
             if batch_x:
-                x_tensor = self.text_processor.numerize_samples(batch_x,
-                                                                seq_length=self.seq_length,
-                                                                max_position=self.max_position,
-                                                                segment=self.segment)
-                y_tensor = self.label_processor.numerize_samples(batch_y,
-                                                                 seq_length=self.seq_length,
-                                                                 one_hot=True)
+                x_tensor = self.text_processor.transform(batch_x,
+                                                         seq_length=self.seq_length,
+                                                         max_position=self.max_position,
+                                                         segment=self.segment)
+                y_tensor = self.label_processor.transform(batch_y,
+                                                          seq_length=self.seq_length,
+                                                          one_hot=True)
                 yield x_tensor, y_tensor
 
             if not self.forever:
                 break
 
-    def generator(self):
+    def generator(self) -> Iterator:
         for item in self:
             yield item
