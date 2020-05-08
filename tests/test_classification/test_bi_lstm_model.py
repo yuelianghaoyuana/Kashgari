@@ -67,11 +67,6 @@ class TestBiLSTM_Model(unittest.TestCase):
         new_model = load_model(model_path)
         new_model.tf_model.summary()
         new_y = new_model.predict(x[:20])
-        print(new_model.multi_label)
-
-        print(model_path)
-        print(f"new_y: {new_y}")
-        print(f"original_y: {original_y}")
 
         assert new_y == original_y
 
