@@ -47,13 +47,14 @@ class BiGRU_Model(ABCClassificationModel):
 
 if __name__ == "__main__":
     from kashgari.corpus import JigsawToxicCommentCorpus
+    from kashgari.tasks.classification import CNN_Attention_Model
     corpus = JigsawToxicCommentCorpus('/Users/brikerman/Downloads/'
                                       'jigsaw-toxic-comment-classification-challenge/train.csv',
                                       sample_count=20000)
     train_x, train_y = corpus.load_data()
     valid_x, valid_y = corpus.load_data('valid')
 
-    model = BiGRU_Model(multi_label=True)
+    model = CNN_Attention_Model(multi_label=True)
     from kashgari.generators import CorpusGenerator
     train_gen = CorpusGenerator(train_x, train_y)
     model.fit(train_x, train_y, valid_x, valid_y, epochs=20)
