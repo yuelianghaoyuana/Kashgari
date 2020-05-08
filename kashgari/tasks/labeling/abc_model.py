@@ -11,7 +11,7 @@ import random
 import logging
 from abc import ABC
 
-from seqeval.metrics import classification_report
+from kashgari.toolkits.reports.sequence_labeling import sequence_labeling_report
 from seqeval.metrics.sequence_labeling import get_entities
 from typing import List, Dict, Any, Tuple, Union, TYPE_CHECKING
 
@@ -296,8 +296,7 @@ class ABCLabelingModel(ABCTaskModel, ABC):
                 logging.debug('x      : {}'.format(x_data[index]))
                 logging.debug('y_true : {}'.format(y_true[index]))
                 logging.debug('y_pred : {}'.format(y_pred[index]))
-        report = classification_report(y_true, y_pred, digits=digits)
-        print(classification_report(y_true, y_pred, digits=digits))
+        report = sequence_labeling_report(y_true, y_pred, digits=digits)
         return report
 
 
