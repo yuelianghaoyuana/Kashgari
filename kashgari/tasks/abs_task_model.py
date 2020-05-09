@@ -180,7 +180,9 @@ class ABCTaskModel(ABC):
                  *,
                  batch_size: int = 32,
                  digits: int = 4,
-                 debug_info: bool = False, ) -> Dict:
+                 truncating: bool = False,
+                 debug_info: bool = False,
+                 **kwargs: Dict) -> Dict:
         raise NotImplementedError
 
 

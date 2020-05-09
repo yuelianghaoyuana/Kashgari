@@ -271,7 +271,8 @@ class ABCLabelingModel(ABCTaskModel, ABC):
                  batch_size: int = 32,
                  digits: int = 4,
                  truncating: bool = False,
-                 debug_info: bool = False) -> Dict:
+                 debug_info: bool = False,
+                 **kwargs: Dict) -> Dict:
         """
         Build a text report showing the main labeling metrics.
 

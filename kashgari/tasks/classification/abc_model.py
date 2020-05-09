@@ -241,7 +241,7 @@ class ABCClassificationModel(ABCTaskModel, ABC):
                 print('output argmax: {}'.format(pred.argmax(-1)))
         return res
 
-    def evaluate(self,
+    def evaluate(self,  # type: ignore[override]
                  x_data: TextSamplesVar,
                  y_data: Union[ClassificationLabelVar, MultiLabelClassificationLabelVar],
                  *,
@@ -249,7 +249,8 @@ class ABCClassificationModel(ABCTaskModel, ABC):
                  digits: int = 4,
                  multi_label_threshold: float = 0.5,
                  truncating: bool = False,
-                 debug_info: bool = False) -> Dict:
+                 debug_info: bool = False,
+                 **kwargs: Dict) -> Dict:
         y_pred = self.predict(x_data,
                               batch_size=batch_size,
                               truncating=truncating,
